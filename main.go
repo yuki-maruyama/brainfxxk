@@ -3,48 +3,57 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 )
 
 const MEM_SIZE int = 128
+const MAX_STEPS int = 10000
 
-func main(){
+func main() {
 	flag.Parse()
 	args := flag.Args()
 
 	var script string
-	var scanner *bufio.Scanner
 	if len(args) != 0 {
-		file, err := os.Open(args[0])
+		file, err := os.ReadFile(args[0])
 		if err != nil {
 			log.Print("Failed to open file")
 			log.Fatal(err)
 		}
-		defer file.Close()
-		scanner = bufio.NewScanner(file)
+		script = string(file)
 	} else {
-		scanner = bufio.NewScanner(os.Stdin)
+		fmt.Print("script > ")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		script = scanner.Text()
 	}
 
-	for scanner.Scan() {
-		script += scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		log.Print("Failed to scan file")
-		log.Fatal(err)
-	}
-
+	fmt.Print("input  > ")
 	brainfxxk(script, os.Stdin, os.Stdout)
 }
 
 func brainfxxk(script string, stdin *os.File, stdout *os.File) {
 	var memory [MEM_SIZE]byte
 	var cursor int = 0
-	for _, r := range script {
-		if cursor < 0 || cursor > MEM_SIZE {
-			log.Fatal("cursor out of range!")
-		}
+	var pc int = 0
+	var stepsCounter int = 0
+
+	scanner := bufio.NewScanner(stdin)
+	if !scanner.Scan() {
+		log.Fatalf("Failed to read: %v", scanner.Err())
+	} 
+	input := scanner.Bytes()
+	input = append(input, byte(26))
+
+	defer func(){
+		stdout.Write([]byte{10})
+	}()
+
+	fmt.Print("output > ")
+	for {
+		r := script[pc]
 		switch r {
 			case '>':
 				cursor++
@@ -55,19 +64,64 @@ func brainfxxk(script string, stdin *os.File, stdout *os.File) {
 			case '-':
 				memory[cursor]--
 			case ',':
-				b := []byte{0}
-				_, err := stdin.Read(b)
-				if err != nil {
-					log.Fatal(err)
+				if input[0] == byte(26) {
+					return
 				}
-				memory[cursor] = b[0]
+				memory[cursor] = input[0]
+				input = input[1:]
 			case '.':
 				b := []byte{memory[cursor]}
 				stdout.Write(b)
+			case '[':
+				if memory[cursor] == 0 {
+					loopsCounter := 0
+					idx := pc + 1
+					for {
+						if script[idx] == '['{
+							loopsCounter++
+						}
+						if script[idx] == ']'{
+							if loopsCounter == 0 {
+								pc = idx
+								break
+							}
+							loopsCounter--
+						}
+						idx++
+					}
+				}
+			case ']':
+				if memory[cursor] != 0 {
+					loopsCounter := 0
+					idx := pc - 1
+					for {
+						if script[idx] == ']'{
+							loopsCounter++
+						}
+						if script[idx] == '['{
+							if loopsCounter == 0 {
+								pc = idx
+								break
+							}
+							loopsCounter--
+						}
+						idx--
+					}
+				}
+				
 			default:
-				continue
+		}
+
+		pc++
+		stepsCounter++
+		if cursor < 0 || cursor > MEM_SIZE {
+			log.Fatal("cursor out of range!")
+		}
+		if stepsCounter > MAX_STEPS {
+			log.Fatal("reaching maximum step!: ", MAX_STEPS)
+		}
+		if pc >= len(script) {
+			break
 		}
 	}
-	log.Println(memory)
-	log.Println(cursor)
 }
