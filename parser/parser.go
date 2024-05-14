@@ -46,6 +46,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 			case token.OUTPUT:
 				body = append(body, &ast.Output{})
 			case token.JFOR:
+				p.NextToken()
 				body = append(body, &ast.Loop{Body: parse()})
 			case token.JBAK:
 				return body
