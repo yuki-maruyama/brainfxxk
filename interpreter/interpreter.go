@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"brainfxxk/ast"
-	"brainfxxk/parser"
+	"github.com/yuki-maruyama/brainfxxk/ast"
+	"github.com/yuki-maruyama/brainfxxk/parser"
 	"fmt"
 	"io"
 	"os"

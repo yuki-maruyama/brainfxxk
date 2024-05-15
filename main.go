@@ -1,8 +1,8 @@
 package main
 
 import (
-	"brainfxxk/interpreter"
-	"brainfxxk/repl"
+	"github.com/yuki-maruyama/brainfxxk/interpreter"
+	"github.com/yuki-maruyama/brainfxxk/repl"
 	"flag"
 	"fmt"
 	"os"

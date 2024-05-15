@@ -1,7 +1,7 @@
 package repl
 
 import (
-	"brainfxxk/interpreter"
+	"github.com/yuki-maruyama/brainfxxk/interpreter"
 	"bufio"
 	"fmt"
 	"io"

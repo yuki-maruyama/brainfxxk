@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"brainfxxk/ast"
-	"brainfxxk/lexar"
-	"brainfxxk/token"
+	"github.com/yuki-maruyama/brainfxxk/ast"
+	"github.com/yuki-maruyama/brainfxxk/lexar"
+	"github.com/yuki-maruyama/brainfxxk/token"
 )
 
 type Parser struct {

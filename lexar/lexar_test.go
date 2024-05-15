@@ -3,7 +3,7 @@
 package lexar
 
 import (
-    "brainfxxk/token"
+    "github.com/yuki-maruyama/brainfxxk/token"
     "testing"
 )
 

@@ -1,6 +1,6 @@
 package lexar
 
-import "brainfxxk/token"
+import "github.com/yuki-maruyama/brainfxxk/token"
 
 type Lexar struct {
 	input        string
