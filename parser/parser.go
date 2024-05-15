@@ -13,6 +13,12 @@ type Parser struct {
 	peekToken token.Token
 }
 
+func Parse(s string) (*ast.Program, error) {
+	l := lexar.New(s)
+	p := New(l)
+	return p.ParseProgram(), nil
+}
+
 func New(l *lexar.Lexar) *Parser {
 	p := &Parser{l: l}
 
