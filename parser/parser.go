@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/yuki-maruyama/brainfxxk/ast"
 	"github.com/yuki-maruyama/brainfxxk/lexar"
 	"github.com/yuki-maruyama/brainfxxk/token"
@@ -16,7 +18,7 @@ type Parser struct {
 func Parse(s string) (*ast.Program, error) {
 	l := lexar.New(s)
 	p := New(l)
-	return p.ParseProgram(), nil
+	return p.ParseProgram()
 }
 
 func New(l *lexar.Lexar) *Parser {
@@ -33,9 +35,9 @@ func (p *Parser) NextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) ParseProgram() *ast.Program {
-	var parse func() []ast.Node
-	parse = func() []ast.Node {
+func (p *Parser) ParseProgram() (*ast.Program, error) {
+	var parse func() ([]ast.Node, error)
+	parse = func() ([]ast.Node, error) {
 		var body []ast.Node
 		for p.curToken.Type != token.EOF {
 			switch p.curToken.Type{
@@ -53,14 +55,26 @@ func (p *Parser) ParseProgram() *ast.Program {
 				body = append(body, &ast.Output{})
 			case token.JFOR:
 				p.NextToken()
-				body = append(body, &ast.Loop{Body: parse()})
+				loopBody, err := parse()
+				if err != nil{
+					return nil, err
+				}
+				loop := &ast.Loop{Body: loopBody}
+				if len(loop.Body) == 0{
+					return nil, fmt.Errorf("empty while block")
+				}
+				body = append(body, loop)
 			case token.JBAK:
-				return body
+				return body, nil
 			}
 			p.NextToken()
 		}
-		return body
+		return body, nil
 	}
 	
-	return &ast.Program{Body: parse()}
+	body, err := parse()
+	if err != nil{
+		return nil, err
+	}
+	return &ast.Program{Body: body}, nil
 }
