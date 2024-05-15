@@ -5,21 +5,20 @@ import (
 	"github.com/yuki-maruyama/brainfxxk/parser"
 	"fmt"
 	"io"
-	"os"
 )
 
 const MAX_MEM = 1024
 
 type Interpreter struct {
 	Program *ast.Program
-	Reader  *os.File
-	Writer  *os.File
+	Reader  io.Reader
+	Writer  io.Writer
 
 	Memory  []byte
 	Cursor  int
 }
 
-func Run(script string, reader *os.File, writer *os.File) error{
+func Run(script string, reader io.Reader, writer io.Writer) error{
 	p, err := parser.Parse(script)
 	if err != nil {
 		return err
@@ -28,7 +27,7 @@ func Run(script string, reader *os.File, writer *os.File) error{
 	return NewInterpreter(p, reader, writer).Run()
 }
 
-func NewInterpreter(p *ast.Program, r *os.File, w *os.File) *Interpreter{
+func NewInterpreter(p *ast.Program, r io.Reader, w io.Writer) *Interpreter{
 	return &Interpreter{
 		Program: p,
 		Reader: r,
