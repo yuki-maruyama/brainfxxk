@@ -85,7 +85,9 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		if i.Writer == nil {
 			return fmt.Errorf("output error")
 		}
-		i.Writer.Write(b)
+		if _, err := i.Writer.Write(b); err != nil{
+			return err
+		}
 	case *ast.Loop:
 		for i.Memory[i.Cursor] != 0 {
 			if err := i.runExpressions(e.Body); err != nil{
