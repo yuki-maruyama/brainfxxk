@@ -7,10 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/yuki-maruyama/brainfxxk/ast"
 	"github.com/yuki-maruyama/brainfxxk/interpreter"
-	"github.com/yuki-maruyama/brainfxxk/lexar"
-	"github.com/yuki-maruyama/brainfxxk/parser"
 	"github.com/yuki-maruyama/brainfxxk/repl"
 )
 
