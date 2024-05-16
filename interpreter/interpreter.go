@@ -70,6 +70,9 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		}
 	case *ast.Input:
 		b := make([]byte, 1)
+		if i.Reader == nil {
+			return fmt.Errorf("input error")
+		}
 		_, err := i.Reader.Read(b)
 		if err != nil {
 			if err == io.EOF{
@@ -81,6 +84,9 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		i.Memory[i.Cursor] = b[0]
 	case *ast.Output:
 		b := []byte{i.Memory[i.Cursor]}
+		if i.Reader == nil {
+			return fmt.Errorf("output error")
+		}
 		i.Writer.Write(b)
 	case *ast.Loop:
 		for i.Memory[i.Cursor] != 0 {
