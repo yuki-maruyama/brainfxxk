@@ -18,16 +18,16 @@ type Interpreter struct {
 	Cursor  int
 }
 
-func Run(ctx context.Context, script string, config Config) error{
+func Run(ctx context.Context, script string, config *Config) error{
 	p, err := parser.Parse(script)
 	if err != nil {
 		return err
 	}
-	
+
 	return NewInterpreter(p, config).Run(ctx)
 }
 
-func NewInterpreter(p *ast.Program, config Config) *Interpreter{
+func NewInterpreter(p *ast.Program, config *Config) *Interpreter{
 	return &Interpreter{
 		Program: p,
 		Reader: config.Reader,
