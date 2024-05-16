@@ -7,8 +7,6 @@ import (
 	"io"
 )
 
-const MAX_MEM = 1024
-
 type Interpreter struct {
 	Program *ast.Program
 	Reader  io.Reader
@@ -18,21 +16,21 @@ type Interpreter struct {
 	Cursor  int
 }
 
-func Run(script string, reader io.Reader, writer io.Writer) error{
+func Run(script string, config Config) error{
 	p, err := parser.Parse(script)
 	if err != nil {
 		return err
 	}
 	
-	return NewInterpreter(p, reader, writer).Run()
+	return NewInterpreter(p, config).Run()
 }
 
-func NewInterpreter(p *ast.Program, r io.Reader, w io.Writer) *Interpreter{
+func NewInterpreter(p *ast.Program, config Config) *Interpreter{
 	return &Interpreter{
 		Program: p,
-		Reader: r,
-		Writer: w,
-		Memory: make([]byte, MAX_MEM),
+		Reader: config.Reader,
+		Writer: config.Writer,
+		Memory: make([]byte, config.MemorySize),
 		Cursor: 0,
 	}
 }
@@ -60,12 +58,12 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		i.Memory[i.Cursor]--
 	case *ast.MoveRight:
 		i.Cursor++
-		if i.Cursor < 0 || i.Cursor > MAX_MEM{
+		if i.Cursor < 0 || i.Cursor >= len(i.Memory){
 			return fmt.Errorf("cursor range exceeds valid bounds")
 		}
 	case *ast.MoveLeft:
 		i.Cursor--
-		if i.Cursor < 0 || i.Cursor > MAX_MEM{
+		if i.Cursor < 0 || i.Cursor >= len(i.Memory){
 			return fmt.Errorf("cursor range exceeds valid bounds")
 		}
 	case *ast.Input:
