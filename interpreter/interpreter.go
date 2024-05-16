@@ -84,7 +84,7 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		i.Memory[i.Cursor] = b[0]
 	case *ast.Output:
 		b := []byte{i.Memory[i.Cursor]}
-		if i.Reader == nil {
+		if i.Writer == nil {
 			return fmt.Errorf("output error")
 		}
 		i.Writer.Write(b)
