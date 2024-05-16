@@ -1,14 +1,16 @@
 package repl
 
 import (
-	"github.com/yuki-maruyama/brainfxxk/interpreter"
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/yuki-maruyama/brainfxxk/interpreter"
 )
 
-func Start(in io.Reader, out io.Writer) {
+func Start(ctx context.Context, in io.Reader, out io.Writer) {
 	 scanner := bufio.NewScanner(in)
 	 for {
 		fmt.Printf(">> ")
@@ -18,6 +20,17 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		line := scanner.Text()
-		interpreter.Run(line, os.Stdin, os.Stdout)
+
+		config := &interpreter.Config {
+			MemorySize: 1024,
+			MaxStep: 100000,
+
+			Reader: os.Stdin,
+			Writer: os.Stdout,
+		}
+
+		err := interpreter.Run(ctx, line, config); if err != nil {
+			fmt.Println("Error: ", err)
+		}
 	 }
 }
