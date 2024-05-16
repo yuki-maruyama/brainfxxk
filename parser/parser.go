@@ -37,6 +37,7 @@ func (p *Parser) NextToken() {
 
 func (p *Parser) ParseProgram() (*ast.Program, error) {
 	var parse func() ([]ast.Node, error)
+	var stack int = 1
 	parse = func() ([]ast.Node, error) {
 		var body []ast.Node
 		for p.curToken.Type != token.EOF {
@@ -59,15 +60,23 @@ func (p *Parser) ParseProgram() (*ast.Program, error) {
 				if err != nil{
 					return nil, err
 				}
-				loop := &ast.Loop{Body: loopBody}
-				if len(loop.Body) == 0{
+				body = append(body, &ast.Loop{Body: loopBody})
+				stack++
+			case token.JBAK:
+				if body == nil {
 					return nil, fmt.Errorf("empty while block")
 				}
-				body = append(body, loop)
-			case token.JBAK:
+				stack--
+				if stack <= 1 {
+					return nil, fmt.Errorf("unexpected token ']'")
+				}
 				return body, nil
 			}
 			p.NextToken()
+		}
+
+		if stack != 1 {
+			return nil, fmt.Errorf("unclosed while block")
 		}
 		return body, nil
 	}
