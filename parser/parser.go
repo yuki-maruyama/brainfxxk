@@ -37,11 +37,11 @@ func (p *Parser) NextToken() {
 
 func (p *Parser) ParseProgram() (*ast.Program, error) {
 	var parse func() ([]ast.Node, error)
-	var stack int = 1
+	var stack int
 	parse = func() ([]ast.Node, error) {
 		var body []ast.Node
 		for p.curToken.Type != token.EOF {
-			switch p.curToken.Type{
+			switch p.curToken.Type {
 			case token.MOVR:
 				body = append(body, &ast.MoveRight{})
 			case token.MOVL:
@@ -56,34 +56,36 @@ func (p *Parser) ParseProgram() (*ast.Program, error) {
 				body = append(body, &ast.Output{})
 			case token.JFOR:
 				p.NextToken()
+				stack++
 				loopBody, err := parse()
-				if err != nil{
+				if err != nil {
 					return nil, err
 				}
 				body = append(body, &ast.Loop{Body: loopBody})
-				stack++
 			case token.JBAK:
-				if body == nil {
+				if stack == 0 {
+					return nil, fmt.Errorf("unexpected token ']'")
+				} else if len(body) == 0 {
 					return nil, fmt.Errorf("empty while block")
 				}
 				stack--
-				if stack <= 1 {
-					return nil, fmt.Errorf("unexpected token ']'")
-				}
 				return body, nil
 			}
 			p.NextToken()
 		}
 
-		if stack != 1 {
+		if stack != 0 {
 			return nil, fmt.Errorf("unclosed while block")
 		}
 		return body, nil
 	}
 	
 	body, err := parse()
-	if err != nil{
+	if err != nil {
 		return nil, err
+	}
+	if stack != 0 {
+		return nil, fmt.Errorf("unclosed while block")
 	}
 	return &ast.Program{Body: body}, nil
 }
