@@ -1,10 +1,12 @@
 package interpreter
 
 import (
-	"github.com/yuki-maruyama/brainfxxk/ast"
-	"github.com/yuki-maruyama/brainfxxk/parser"
+	"context"
 	"fmt"
 	"io"
+
+	"github.com/yuki-maruyama/brainfxxk/ast"
+	"github.com/yuki-maruyama/brainfxxk/parser"
 )
 
 type Interpreter struct {
@@ -16,13 +18,13 @@ type Interpreter struct {
 	Cursor  int
 }
 
-func Run(script string, config Config) error{
+func Run(ctx context.Context, script string, config Config) error{
 	p, err := parser.Parse(script)
 	if err != nil {
 		return err
 	}
 	
-	return NewInterpreter(p, config).Run()
+	return NewInterpreter(p, config).Run(ctx)
 }
 
 func NewInterpreter(p *ast.Program, config Config) *Interpreter{
@@ -35,22 +37,27 @@ func NewInterpreter(p *ast.Program, config Config) *Interpreter{
 	}
 }
 
-func (i *Interpreter) Run() error{
-	err := i.runExpressions(i.Program.Body)
+func (i *Interpreter) Run(ctx context.Context) error{
+	err := i.runExpressions(ctx, i.Program.Body)
 	return err
 } 
 
-func (i *Interpreter) runExpressions(exprs []ast.Node) error{
+func (i *Interpreter) runExpressions(ctx context.Context, exprs []ast.Node) error{
 	for _, expr := range exprs {
-		err := i.runExpression(expr)
-		if err != nil {
-			return err
+		select{
+		case <- ctx.Done():
+			return ctx.Err()
+		default:
+			err := i.runExpression(ctx, expr)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (i *Interpreter) runExpression(expr ast.Node) error{
+func (i *Interpreter) runExpression(ctx context.Context, expr ast.Node) error{
 	switch e := expr.(type) {
 	case *ast.Increment:
 		i.Memory[i.Cursor]++
@@ -90,8 +97,13 @@ func (i *Interpreter) runExpression(expr ast.Node) error{
 		}
 	case *ast.Loop:
 		for i.Memory[i.Cursor] != 0 {
-			if err := i.runExpressions(e.Body); err != nil{
+			if err := i.runExpressions(ctx, e.Body); err != nil{
 				return err
+			}
+			select {
+			case <- ctx.Done():
+				return ctx.Err()
+			default:
 			}
 		}
 	}
